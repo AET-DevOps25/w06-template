@@ -1,0 +1,91 @@
+# This file contains the default values for the Canteen App Helm chart.
+
+# Add your tumid here
+tumid:
+
+##################################################################################################################
+# No changes needed below this line
+namespace:
+  create: false
+
+server:
+  image:
+    repository: ghcr.io/aet-devops25/w06-template/server
+    tag: latest
+    pullPolicy: Always
+    pullSecrets:
+      - name: ghcr-secret
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  replicaCount: 1
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: docker
+
+client:
+  image:
+    repository: ghcr.io/aet-devops25/w06-template/client
+    tag: latest
+    pullPolicy: Always
+    pullSecrets:
+      - name: ghcr-secret
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  replicaCount: 1
+
+canary_server:
+  image:
+    repository: ghcr.io/aet-devops25/w06-template/server
+    tag: latest
+    pullPolicy: Always
+    pullSecrets:
+      - name: ghcr-secret
+  service:
+    type: ClusterIP
+    port: 8081
+    targetPort: 8081
+  replicaCount: 1
+  env:
+    - name: SPRING_PROFILES_ACTIVES
+      value: docker
+
+canary_client:
+  image:
+    repository: ghcr.io/aet-devops25/w06-template/client
+    tag: canary
+    pullPolicy: Always
+    pullSecrets:
+      - name: ghcr-secret
+  service:
+    type: ClusterIP
+    port: 3001
+    targetPort: 3001
+  replicaCount: 1
+
+ingress:
+  enabled: true
+  className: "nginx"
+  tls: true
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  # canary‐routing settings
+  canary:
+    # turn on the canary Ingress object
+    enabled: true
+
+
+    # (optional) if you prefer header routing instead, uncomment:
+    #byHeader: "X-Student-Group"
+    #headerValue: "mgmt_tech"
+
+    # we will use cookie based routing
+    byCookie: "X-Student-Group"
+    cookieValue: "mgmt_tech"
+
+    # the names of your canary Services
+    clientServiceName: "canary-client-service"
+    serverServiceName: "canary-server-service"

@@ -1,0 +1,65 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "canteen-primarySS-ingress"
+  namespace: "{{ .Values.tumid }}-devops25"
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        - "{{ .Values.tumid }}-devops25.student.k8s.aet.cit.tum.de"
+      secretName: "canteen-devops25-tls"
+  {{- end }}
+  rules:
+    - host: "{{ .Values.tumid }}-devops25.student.k8s.aet.cit.tum.de"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: "client-service"
+                port:
+                  number: {{ .Values.client.service.port }}
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: "server-service"
+                port:
+                  number: {{ .Values.server.service.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "canteen-canary-ingress"
+  namespace: "{{ .Values.tumid }}-devops25"
+  annotations:
+    nginx.ingress.kubernetes.io/canary: "true"
+    nginx.ingress.kubernetes.io/canary-by-cookie: "X-Student-Group"
+    nginx.ingress.kubernetes.io/canary-by-cookie-value: "mgmt_tech"
+spec:
+  rules:
+    - host: "{{ .Values.tumid }}-devops25.student.k8s.aet.cit.tum.de"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.ingress.canary.clientServiceName }}
+                port:
+                  number: {{ .Values.canary_client.service.port }}
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.ingress.canary.serverServiceName }}
+                port:
+                  number: {{ .Values.canary_server.service.port }}
+{{- end }}

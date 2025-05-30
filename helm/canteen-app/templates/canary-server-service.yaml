@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: canary-server-service
+  namespace: "{{ .Values.tumid }}-devops25"
+spec:
+  selector:
+    app: canary-canteen-server-selector
+  ports:
+    - port: {{ .Values.canary_server.service.port }}
+      targetPort: {{ .Values.canary_server.service.targetPort }}
+      protocol: TCP
+  type: {{ .Values.canary_server.service.type }}

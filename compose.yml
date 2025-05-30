@@ -1,0 +1,34 @@
+services:
+  server:
+    image: ghcr.io/aet-devops25/w06-template/server:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  client:
+    image: ghcr.io/aet-devops25/w05-template/client:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - PUBLIC_API_URL=${PUBLIC_API_URL:-http://localhost:8080}
+    depends_on:
+      - server
+    restart: unless-stopped
+
+  client-canary:
+    image: ghcr.io/aet-devops25/w06-template/client-canary:latest #canary tag
+    ports:
+      - "3001:3000" # canary deployment on port 3001
+    environment:
+      - PUBLIC_API_URL=${PUBLIC_API_URL:-http://localhost:8080}
+    depends_on:
+      - server
+    restart: unless-stopped

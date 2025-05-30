@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canary-canteen-server
+  namespace: "{{ .Values.tumid }}-devops25"
+spec:
+  replicas: {{ .Values.canary_server.replicaCount }}
+  selector:
+    matchLabels:
+      app: canary-canteen-server-selector
+  template:
+    metadata:
+      labels:
+        app: canary-canteen-server-selector
+    spec:
+      containers:
+        - name: server
+          image: "{{ .Values.canary_server.image.repository }}:{{ .Values.canary_server.image.tag }}"
+          imagePullPolicy: {{ .Values.canary_server.image.pullPolicy }}
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          ports:
+            - containerPort: {{ .Values.canary_server.service.targetPort }}
+          env:
+            {{- range .Values.canary_server.env }}
+            - name: {{ .name }}
+              value: "{{ .value }}"
+            {{- end }}
+      imagePullSecrets:
+        - name: ghcr-secret

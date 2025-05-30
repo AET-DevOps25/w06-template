@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: canary-client-service
+  namespace: "{{ .Values.tumid }}-devops25"
+spec:
+  selector:
+    app: canary-canteen-client-selector
+  ports:
+    - port: {{ .Values.canary_client.service.port }}
+      targetPort: {{ .Values.canary_client.service.targetPort }}
+      protocol: TCP
+  type: {{ .Values.canary_client.service.type }}
